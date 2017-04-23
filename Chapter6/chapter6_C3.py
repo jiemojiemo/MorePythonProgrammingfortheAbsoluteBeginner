@@ -49,6 +49,9 @@ radius = 250
 angle = 0.0
 pos = Point(0,0)
 old_pos = Point(0,0)
+vel_r = 0.1
+circumference = 2*math.pi*radius
+distance = 0.0
 
 while True:
     for event in pygame.event.get():
@@ -57,6 +60,11 @@ while True:
     keys = pygame.key.get_pressed()
     if keys[K_ESCAPE]:
         sys.exit()
+    if keys[K_1]:
+        vel_r += 0.05
+    if keys[K_2]:
+        vel_r -= 0.05
+
 
     #draw background
     screen.blit(space,(0,0))
@@ -66,7 +74,8 @@ while True:
     screen.blit(planet, (400-width/2,300-width/2))
 
     #move the ship
-    angle = wrap_angle(angle - 0.1)
+    angle = wrap_angle(angle - vel_r)
+    distance += (vel_r/360)*circumference
     pos.x = math.cos(math.radians(angle))*radius
     pos.y = math.sin(math.radians(angle))*radius
     #rotate the ship
@@ -85,6 +94,7 @@ while True:
     print_text(font, 0, 20, "Rotation: " + "{:.2f}".format(rangle))
     print_text(font, 0, 40, "Position: " + str(pos))
     print_text(font, 0, 60, "Old Pos: " + str(old_pos))
+    print_text(font, 0, 80, "Distance: " + str(distance))
 
     pygame.display.update()
     old_pos.x = pos.x
