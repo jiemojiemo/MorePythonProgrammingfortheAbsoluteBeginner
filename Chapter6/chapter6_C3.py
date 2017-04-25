@@ -82,7 +82,7 @@ while True:
     delta_x = (pos.x - old_pos.x)
     delta_y = (pos.y - old_pos.y)
     rangle = math.atan2(delta_y, delta_x)
-    rangled = wrap_angle(-math.degrees(rangle))
+    rangled = wrap_angle(math.degrees(rangle))
     scratch_ship = pygame.transform.rotate(ship, rangled)
     #draw the ship
     width, height = scratch_ship.get_size()

@@ -3,6 +3,8 @@ import random
 import pygame
 from pygame.locals import *
 
+#double jump
+
 class MySprite(pygame.sprite.Sprite):
     def __init__(self, target):
         pygame.sprite.Sprite.__init__(self)
@@ -116,9 +118,9 @@ game_over = False
 you_win = False
 player_jumping = False
 jump_vel = 0.0
-jump_before = 0.0
 player_start_y = player.Y
-score = 0
+jump_times = 2
+can_jump = True
 
 # main loop
 while True:
@@ -128,21 +130,18 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             sys.exit()
-        elif event.type == KEYUP:
+        elif event.type == KEYDOWN:
             if event.key == pygame.K_SPACE:
-                if not player_jumping:
+                if can_jump:
                     player_jumping = True
-                    jump_vel = -8.0 + jump_before
-                    if jump_vel < -16:
-                        jump_vel = -16
-    keys = pygame.key.get_pressed()
-    if keys[K_ESCAPE]:
-        sys.exit()
-    elif keys[K_SPACE]:    # space for jumping
-        if not player_jumping:
-            jump_before -= 0.5
-
-
+                    jump_vel = -8.0
+                    jump_times -= 1
+                    print(jump_times)
+                    if jump_times == 0:
+                        can_jump = False
+            elif event.key == pygame.K_ESCAPE:
+                sys.exit()
+                
     #update the arrow
     if not game_over:
         arrow.X -= arrow_vel
@@ -158,7 +157,6 @@ while True:
     if pygame.sprite.collide_rect(arrow, dragon):
         reset_arrow()
         dragon.X -= 20
-        score += 10
 
     #did dragon eat the player?
     if pygame.sprite.collide_rect(player, dragon):
@@ -173,23 +171,24 @@ while True:
     if player_jumping:
         player.Y += jump_vel
         jump_vel += 0.5
-        if player.Y > player_start_y:
+        if player.Y > player_start_y: # jump is over
             player_jumping = False
+            can_jump = True
             player.Y = player_start_y
             jump_vel = 0.0
-            jump_before = 0.0
+            jump_times = 2
 
     #draw the background
     screen.blit(bg, (0,0))
     #update sprites
     if not game_over:
-        group.update(ticks, 30)
+        group.update(ticks, 50)
 
     #draw sprites
     group.draw(screen)
 
     print_text(font, 350, 560, "Press SPACE to jump!")
-    print_text(font, 350, 500, "Score: " + str(score))
+
     if game_over:
         print_text(font, 360, 100, "G A M E O V E R")
         if you_win:
