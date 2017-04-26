@@ -84,12 +84,43 @@ def add_zombie_to_group():
     zombie.direction = random.randint(0,3) * 2
     zombie_group.add(zombie)
 
+def add_fire():
+    global fire_group
+    arrow_image = pygame.image.load("flame.png").convert_alpha()
+    width,height = arrow_image.get_size()
+    arrow_image = pygame.transform.smoothscale(arrow_image, (width//2,height//2))
+
+    vel = 5
+    if player.direction == 0:
+        arrow_image = pygame.transform.rotate(arrow_image, 270)
+        fire_velocity = Point(0,-vel)
+    elif player.direction == 2:
+        arrow_image = pygame.transform.rotate(arrow_image, 180)
+        fire_velocity = Point(vel,0)
+    elif player.direction == 4:
+        arrow_image = pygame.transform.rotate(arrow_image, 90)
+        fire_velocity = Point(0,vel)
+    elif player.direction == 6:
+        fire_velocity = Point(-vel,0)
+
+
+
+    width,height = arrow_image.get_size()
+
+    arrow = MySprite()
+    arrow.load_image(arrow_image, width, height, 1)
+    arrow.fire_velocity = fire_velocity
+    #arrow.load("flame.png", 40, 16, 1)
+    arrow.X = player.X + player.frame_width//2
+    arrow.Y = player.Y + player.frame_height//2
+    fire_group.add(arrow)
+
 
 def update_zombie():
     global start_time
     now_time = time.clock()
     seconds = now_time - start_time
-    if seconds > 10.0:
+    if seconds > 1.0:
         add_zombie_to_group()
         start_time = now_time
     #manually iterate through all the zombies
@@ -107,18 +138,9 @@ def update_zombie():
         if z.X < 0 or z.X > 700 or z.Y < 0 or z.Y > 500:
             reverse_direction(z)
 
-        collistion_zombie = None
-        collistion_zombie = pygame.sprite.spritecollideany(z, zombie_group)
-        if collistion_zombie != None and z != collistion_zombie:
-            if pygame.sprite.collide_rect_ratio(0.5)(z, collistion_zombie):
-                reverse_direction(z)
-                reverse_direction(collistion_zombie)
-
-
-
     zombie_group.update(ticks, 50)
 
-def check_collistion_with_zombie():
+def check_collistion_zombie():
     #check for collistion with zombies
     attacker = None
     attacker = pygame.sprite.spritecollideany(player, zombie_group)
@@ -134,6 +156,10 @@ def check_collistion_with_zombie():
         else:
             attacker = None
 
+def check_collistion_fire():
+    pygame.sprite.groupcollide(fire_group, zombie_group, True, True)
+
+
 def update_health():
     health_group.update(ticks, 50)
     #check for collistion with health
@@ -147,6 +173,18 @@ def update_health():
             healther.X = random.randint(0,700)
             healther.Y = random.randint(0,500)
 
+def update_fire():
+    fire_group.update(ticks, 50)
+
+    for fire in fire_group:
+        #fire.velocity = calc_velocity(fire.direction,0.5)
+        fire.X += fire.fire_velocity.x
+        fire.Y += fire.fire_velocity.y
+        if fire.X < 0 or fire.X > 700 or fire.Y < 0 or fire.Y > 500:
+            fire_group.remove(fire)
+
+
+
 #main program begins
 pygame.init()
 pygame.display.set_caption("Zombie Mob Game")
@@ -158,6 +196,7 @@ timer = pygame.time.Clock()
 player_group = pygame.sprite.Group()
 zombie_group = pygame.sprite.Group()
 health_group = pygame.sprite.Group()
+fire_group = pygame.sprite.Group()
 
 #create player sprite
 player = MySprite()
@@ -189,14 +228,16 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             sys.exit()
+        elif event.type == KEYUP:
+            if event.key == K_SPACE:
+                if not game_over:
+                    add_fire()
     keys = pygame.key.get_pressed()
     if keys[K_ESCAPE]:
         sys.exit()
     elif keys[K_UP] or keys[K_w]:
         player.direction = 0
         player_moving = True
-        hit_list = pygame.sprite.groupcollide(zombie_group, zombie_group, False, False)
-        print(hit_list)
     elif keys[K_RIGHT] or keys[K_d]:
         player.direction = 2
         player_moving = True
@@ -212,8 +253,10 @@ while True:
     if not game_over:
         update_player()
         update_zombie()
-        check_collistion_with_zombie()
+        check_collistion_zombie()
         update_health()
+        update_fire()
+        check_collistion_fire()
 
     if player_health <= 0:
         game_over = True
@@ -223,6 +266,7 @@ while True:
     player_group.draw(screen)
     zombie_group.draw(screen)
     health_group.draw(screen)
+    fire_group.draw(screen)
 
     #draw energy bar
     draw_energy_bar()
