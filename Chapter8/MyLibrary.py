@@ -9,7 +9,7 @@ def print_text(font, x, y, text, color=(255,255,255)):
 
 #MySprite class extends pygame.sprite.Sprite
 class MySprite(pygame.sprite.Sprite):
-    def __init__(self, target):
+    def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.master_image = None
         self.frame = 0
@@ -56,14 +56,11 @@ class MySprite(pygame.sprite.Sprite):
 
     def update(self, current_time, rate=30):
         #update animation frame number
-        #print(current_time)
         if current_time > self.last_time + rate:
             self.frame += 1
-            print(current_time)
-        if self.frame > self.last_frame:
-            self.frame = self.first_frame
-
-        self.last_time = current_time
+            if self.frame > self.last_frame:
+                self.frame = self.first_frame
+            self.last_time = current_time
         #build current frame only if it changed
         if self.frame != self.old_frame:
             frame_x = (self.frame % self.colums)*self.frame_width
