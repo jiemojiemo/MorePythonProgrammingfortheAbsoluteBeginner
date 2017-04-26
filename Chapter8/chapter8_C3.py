@@ -69,7 +69,29 @@ def update_player():
         be_bound()
     player_group.update(ticks, 50)
 
+def add_health():
+    global health_group
+    health = MySprite()
+    health.load("health.png", 32, 32, 1)
+    health.position = random.randint(0,700),random.randint(0,500)
+    health_group.add(health)
+
+def add_zombie_to_group():
+    global zombie_group
+    zombie = MySprite()
+    zombie.load("zombie walk.png", 96, 96, 8)
+    zombie.position = random.randint(0,700), random.randint(0,500)
+    zombie.direction = random.randint(0,3) * 2
+    zombie_group.add(zombie)
+
+
 def update_zombie():
+    global start_time
+    now_time = time.clock()
+    seconds = now_time - start_time
+    if seconds > 10.0:
+        add_zombie_to_group()
+        start_time = now_time
     #manually iterate through all the zombies
     for z in zombie_group:
         #set the zombie's animation range
@@ -85,7 +107,16 @@ def update_zombie():
         if z.X < 0 or z.X > 700 or z.Y < 0 or z.Y > 500:
             reverse_direction(z)
 
-        zombie_group.update(ticks, 50)
+        collistion_zombie = None
+        collistion_zombie = pygame.sprite.spritecollideany(z, zombie_group)
+        if collistion_zombie != None:
+            if pygame.sprite.collide_rect_ratio(0.5)(z, collistion_zombie):
+                reverse_direction(z)
+                #reverse_direction(collistion_zombie)
+
+
+
+    zombie_group.update(ticks, 50)
 
 def check_collistion_with_zombie():
     #check for collistion with zombies
@@ -107,11 +138,14 @@ def update_health():
     health_group.update(ticks, 50)
     #check for collistion with health
     global player_health
-    if pygame.sprite.collide_rect_ratio(0.5)(player, health):
-        player_health += 30
-        if player_health > 100 : player_health = 100
-        health.X = random.randint(0,700)
-        health.Y = random.randint(0,500)
+    healther = None
+    healther = pygame.sprite.spritecollideany(player, health_group)
+    if healther != None:
+        if pygame.sprite.collide_rect_ratio(0.5)(player, healther):
+            player_health += 10
+            if player_health > 100 : player_health = 100
+            healther.X = random.randint(0,700)
+            healther.Y = random.randint(0,500)
 
 #main program begins
 pygame.init()
@@ -133,25 +167,19 @@ player.direction = 4
 player_group.add(player)
 
 #create health sprite
-health = MySprite()
-health.load("health.png", 32, 32, 1)
-health.position = 400,300
-health_group.add(health)
+for n in range(0,3):
+    add_health()
+
 
 player_moving = False
 game_over = False
 player_health = 100
+start_time = time.clock()
 
 #create zombie sprite
 zombie_image = pygame.image.load("zombie walk.png").convert_alpha()
 for n in range(0, 10):
-    zombie = MySprite()
-    zombie.load("zombie walk.png", 96, 96, 8)
-    zombie.position = random.randint(0,700), random.randint(0,500)
-    zombie.direction = random.randint(0,3) * 2
-    zombie_group.add(zombie)
-
-
+    add_zombie_to_group()
 
 while True:
     timer.tick(30)
@@ -167,6 +195,8 @@ while True:
     elif keys[K_UP] or keys[K_w]:
         player.direction = 0
         player_moving = True
+        hit_list = pygame.sprite.groupcollide(zombie_group, zombie_group, False, False)
+        print(hit_list)
     elif keys[K_RIGHT] or keys[K_d]:
         player.direction = 2
         player_moving = True

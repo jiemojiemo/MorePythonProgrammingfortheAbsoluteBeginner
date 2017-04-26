@@ -69,7 +69,22 @@ def update_player():
         be_bound()
     player_group.update(ticks, 50)
 
+def add_zombie_to_group():
+    global zombie_group
+    zombie = MySprite()
+    zombie.load("zombie walk.png", 96, 96, 8)
+    zombie.position = random.randint(0,700), random.randint(0,500)
+    zombie.direction = random.randint(0,3) * 2
+    zombie_group.add(zombie)
+
+
 def update_zombie():
+    global start_time
+    now_time = time.clock()
+    seconds = now_time - start_time
+    if seconds > 10.0:
+        add_zombie_to_group()
+        start_time = now_time
     #manually iterate through all the zombies
     for z in zombie_group:
         #set the zombie's animation range
@@ -85,7 +100,7 @@ def update_zombie():
         if z.X < 0 or z.X > 700 or z.Y < 0 or z.Y > 500:
             reverse_direction(z)
 
-        zombie_group.update(ticks, 50)
+    zombie_group.update(ticks, 50)
 
 def check_collistion_with_zombie():
     #check for collistion with zombies
@@ -141,17 +156,12 @@ health_group.add(health)
 player_moving = False
 game_over = False
 player_health = 100
+start_time = time.clock()
 
 #create zombie sprite
 zombie_image = pygame.image.load("zombie walk.png").convert_alpha()
 for n in range(0, 10):
-    zombie = MySprite()
-    zombie.load("zombie walk.png", 96, 96, 8)
-    zombie.position = random.randint(0,700), random.randint(0,500)
-    zombie.direction = random.randint(0,3) * 2
-    zombie_group.add(zombie)
-
-
+    add_zombie_to_group()
 
 while True:
     timer.tick(30)
