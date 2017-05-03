@@ -52,31 +52,43 @@ def get_food_direction():
     for obj in food_group:
         food = Point(obj.X//32, obj.Y//32)
     if head_x < food.x:
-        return "right"
+        dir1 = "right"
     elif head_x > food.x:
-        return "left"
-    elif head_x == food.x:
-        if head_y < food.y:
-            return "down"
-        elif head_y > food.y:
-            return "up"
+        dir1 = "left"
+    else:
+        dir1 = "None"
+
+    if head_y < food.y:
+        dir2 = "down"
+    elif head_y > food.y:
+        dir2 = "up"
+    else:
+        dir2 = "None"
+
+    return (dir1, dir2)
 
 def auto_move():
     direction = get_current_direction()
     food_dir = get_food_direction()
     print(direction, food_dir)
-    if food_dir == "left":
+
+    if food_dir[0] == "left":
         if direction != "right":
             direction = "left"
-    elif food_dir == "right":
+        else:
+            direction = food_dir[1]
+    elif food_dir[0] == "right":
         if direction != "left":
             direction = "right"
-    elif food_dir == "up":
-        if direction != "down":
-            direction = "up"
-    elif food_dir == "down":
-        if direction != "up":
-            direction = "down"
+        else:
+            direction = food_dir[1]
+    else:
+        if food_dir[1] == "up":
+            if direction != "down":
+                direction = "up"
+        elif food_dir[1] == "down":
+            if direction != "up":
+                direction = "down"
 
     if direction == "up":
         snake.velocity = V_UP
@@ -86,12 +98,15 @@ def auto_move():
         snake.velocity = V_LEFT
     elif direction == "right":
         snake.velocity = V_RIGHT
+
 # main program begins
 game_init()
 game_over = False
 last_time = 0
 step_time = 400
 auto_play = False
+graph = [[0 for col in range(24)] for row in range(18)]
+print(graph)
 
 V_UP = Point(0,-1)
 V_DOWN = Point(0,1)
@@ -104,17 +119,19 @@ while True:
 
     #event section
     for event in pygame.event.get():
-        if event.type == QUIT: sys.exit()
+        if event.type == QUIT:
+            sys.exit()
+        elif event.type == KEYUP:
+            if event.key == K_SPACE:
+                if auto_play:
+                    auto_play = False
+                    step_time = 400
+                else:
+                    auto_play = True
+                    step_time = 50
     keys = pygame.key.get_pressed()
     if keys[K_ESCAPE]:
          sys.exit()
-    elif keys[K_SPACE]:
-        if auto_play:
-            auto_play = False
-            step_time = 400
-        else:
-            auto_play = True
-            step_time = 100
     elif keys[K_UP] or keys[K_w]:
         if snake.velocity.ne(V_DOWN):
             snake.velocity = V_UP
@@ -152,7 +169,6 @@ while True:
         # if auto play mode
         if auto_play:
             auto_move()
-
 
     backbuffer.fill((20,50,20))
     snake.draw(backbuffer)
