@@ -29,7 +29,7 @@ class Snake():
         self.add_segment()
 
     def add_segment(self):
-        
+
         '''
         self.move_segments()
         last = len(self.segments) - 1
@@ -70,8 +70,8 @@ class Snake():
         self.segments[0].Y += self.velocity.y * 32
 
 
-    def update(self, ticks):
-        if ticks > self.old_time + 400:
+    def update(self, ticks, rate=400):
+        if ticks > self.old_time + rate:
             self.old_time = ticks
             self.move_segments()
 
